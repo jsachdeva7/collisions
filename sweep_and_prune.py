@@ -63,6 +63,18 @@ def ensure_within_bounds(particle: Particle, box: Box):
     elif particle.s.y + particle.r > box.bottom:
         particle.s.y = box.bottom - particle.r
 
+num_collision_detections = list()
+
+def calculate_average_detections():
+    if not num_collision_detections:
+        print("No collision detections recorded.")
+        return
+    
+    total = sum(num_collision_detections)
+    average = total / len(num_collision_detections)
+    print(f"Average collision detections per frame: {average:.2f}")
+    
+
 def main():
     run = True
     clock = pygame.time.Clock()
@@ -72,16 +84,12 @@ def main():
     box = Box()
 
     particles_linked = LinkedList()
-    for i in range(20):
+    for i in range(300):
         new_particle = Particle()
         new_particle.name = str(i)
         particles_linked.append(new_particle)
 
-    started = False
-
-    # particles: list[Particle] = []
-    # for i in range(5):
-    #     particles.append(Particle())
+    started = True
 
     while run:
         clock.tick(30)
@@ -90,8 +98,6 @@ def main():
         box.draw(WINDOW)
 
         particles_linked.sort()
-        # if started:
-        #     particles_linked.display()
 
         cur_node: Node = particles_linked.head.next
         active_intervals = []
@@ -127,28 +133,22 @@ def main():
                 active_intervals_string += substring
                 if i != len(active_intervals) - 1:
                     active_intervals_string += ", "
-            print(active_intervals_string)
+            # print(active_intervals_string)
         
+        num_collisions_detected_this_frame = 0
         for interval in active_intervals:
             for i in range(len(interval)):
                 for j in range(i + 1, len(interval)):
                     handle_particle_collision(interval[i], interval[j])
-
-        # for i in range(len(particles)):
-        #     for j in range(i + 1, len(particles)):
-        #         handle_particle_collision(particles[i], particles[j])
+                    num_collisions_detected_this_frame += 1
+        num_collision_detections.append(num_collisions_detected_this_frame)
+        calculate_average_detections()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
-                started = not started
-        
-        # for p in particles:
-        #     p.draw(WINDOW)
-        #     if started:
-        #         p.update(dt, box)
-        #         ensure_within_bounds(p, box)
+            # if event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
+            #     started = not started
 
         pygame.display.update()
     pygame.quit()
