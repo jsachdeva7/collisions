@@ -76,6 +76,8 @@ class Particle:
         pygame.draw.circle(window, RED, (self.s.x, self.s.y), self.r)
         particle_text = FONT.render(self.name, 1, (255, 255, 255))
         window.blit(particle_text, (self.s.x - particle_text.get_width() / 2, self.s.y - 32))
+    
+    def draw_particle_line(self, window: pygame.Surface, box: Box):
         pygame.draw.line(window, (255, 255, 255), (self.s.x, self.s.y + self.r), (self.s.x, box.bottom))
 
     def __lt__(self, other_p: 'Particle') -> bool:

@@ -104,6 +104,7 @@ def main():
         current_interval = [cur_node.data]
         while cur_node and cur_node.next:
             cur_node.data.draw(WINDOW, box)
+            cur_node.data.draw_particle_line(WINDOW, box)
             if abs((cur_node.data.s.x - cur_node.next.data.s.x)) < (cur_node.data.r + cur_node.next.data.r):
                 current_interval.append(cur_node.next.data)
             else:
@@ -117,6 +118,7 @@ def main():
 
         if cur_node:
             cur_node.data.draw(WINDOW, box)
+            cur_node.data.draw_particle_line(WINDOW, box)
             if started:
                 cur_node.data.update(dt, box)
                 ensure_within_bounds(cur_node.data, box)
