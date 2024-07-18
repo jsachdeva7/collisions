@@ -54,3 +54,11 @@ def ensure_within_bounds(particle: Particle, box: Box):
         particle.s.y = box.top + particle.r
     elif particle.s.y + particle.r > box.bottom:
         particle.s.y = box.bottom - particle.r
+
+def calculate_average_detections(num_collision_detections: list[int]):
+    if not num_collision_detections:
+        return
+    
+    total = sum(num_collision_detections)
+    average = total / len(num_collision_detections)
+    print(f"Average collision detections per frame: {average:.2f}")

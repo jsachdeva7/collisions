@@ -26,12 +26,12 @@ class LinkedList:
             cur = cur.next
         return count
     
-    def display(self):
+    def display(self, axis: str):
         elems = []
         cur_node = self.head
         while cur_node.next != None:
             cur_node = cur_node.next
-            elems.append(cur_node.data.name + ": " + str(int(round(cur_node.data.s.x, 0))))
+            elems.append(cur_node.data.name + ": " + str(int(round((cur_node.data.s.x if axis == 'x' else cur_node.data.s.y), 0))))
         print(elems)
     
     def get(self, index):
@@ -45,25 +45,25 @@ class LinkedList:
             cur_node = cur_node.next
             i += 1
 
-    def sort(self):
+    def sort(self, axis):
         sorted_list = None
         cur_node = self.head.next  # Start from the first actual node
 
         while cur_node:
             next_node = cur_node.next  # Save the next node
-            sorted_list = self.sorted_insert(sorted_list, cur_node)
+            sorted_list = self.sorted_insert(sorted_list, cur_node, axis)
             cur_node = next_node  # Move to the next node
 
         # Attach sorted list to dummy head
         self.head.next = sorted_list
 
-    def sorted_insert(self, head: Node, node: Node):
-        if not head or node.data.s.x < head.data.s.x:  # Sort by x position
+    def sorted_insert(self, head: Node, node: Node, axis: str):
+        if not head or (node.data.s.x < head.data.s.x if axis == 'x' else node.data.s.y < head.data.s.y):  # Sort by x position
             node.next = head
             head = node
         else:
             current = head
-            while current.next and current.next.data.s.x < node.data.s.x:
+            while current.next and ((current.next.data.s.x < node.data.s.x) if axis == 'x' else (current.next.data.s.y < node.data.s.y)):
                 current = current.next
             node.next = current.next
             current.next = node
