@@ -6,6 +6,7 @@ import time
 from MemoryTracker import MemoryTracker
 from CollisionsUtil import handle_particle_collision, ensure_within_bounds, calculate_average_detections
 from LinkedList import LinkedList, Node
+from KDTree import KDTree
 
 pygame.init()
 WIDTH, HEIGHT = (800, 800)
@@ -25,19 +26,14 @@ def main():
     box = Box()
     started = True
 
-    num_particles = 5
-    particles_linked_x = LinkedList()
+    num_particles = 50
+    particles_linked = LinkedList()
     for i in range(num_particles):
         new_particle = Particle()
         new_particle.name = str(i)
-        particles_linked_x.append(new_particle)
+        particles_linked.append(new_particle)
 
-    cur_node: Node = particles_linked_x.head.next
-    particles_linked_y = LinkedList()
-    while cur_node and cur_node.next:
-        particles_linked_y.append(cur_node.data)
-        cur_node = cur_node.next
-    particles_linked_y.append(cur_node.data)
+    kd_tree = KDTree(WINDOW)
 
     start_time = time.time()
 
@@ -48,15 +44,12 @@ def main():
         box.draw(WINDOW)
 
         if started:
-            print("-------")
-            particles_linked_x.sort('x')
-            print("x:")
-            particles_linked_x.display('x')
-            particles_linked_y.sort('y')
-            print("y:")
-            particles_linked_y.display('y')
+            kd_tree.build(particles_linked, (box.left, box.top), (box.right, box.bottom))
+        kd_tree.leaf_count = 0
+        kd_tree.traverse_tree(kd_tree.root, started)
+        if started: print("-------------")
 
-        cur_node: Node = particles_linked_x.head.next
+        cur_node: Node = particles_linked.head.next
         while cur_node and cur_node.next:
             cur_node.data.draw(WINDOW, box)
             if started:
@@ -84,14 +77,14 @@ def main():
 
         current_time = time.time()
         elapsed_time = current_time - start_time
-        if elapsed_time >= 60:
-            run = False
+        # if elapsed_time >= 60:
+        #     run = False
 
         pygame.display.update()
     pygame.quit()
-    print("N: " + str(box.N) + ", " + str(num_particles) + " particles")
-    calculate_average_detections(num_collision_detections)
-    memory_tracker.calculate_average_memory_usage()
+    # print("N: " + str(box.N) + ", " + str(num_particles) + " particles")
+    # calculate_average_detections(num_collision_detections)
+    # memory_tracker.calculate_average_memory_usage()
 
 main()
 

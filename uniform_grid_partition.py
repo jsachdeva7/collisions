@@ -60,7 +60,7 @@ def main():
     box = Box()
     started = True
 
-    num_particles = 2
+    num_particles = 50
     particles: list[Particle] = []
     for i in range(num_particles):
         new_particle = Particle()

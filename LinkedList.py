@@ -68,6 +68,14 @@ class LinkedList:
             node.next = current.next
             current.next = node
         return head
+    
+    def to_list(self):
+        elements = []
+        current = self.head.next
+        while current:
+            elements.append(current.data)
+            current = current.next
+        return elements
 
     # def remove(self, index):
     #     if index >= self.length():
