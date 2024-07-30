@@ -4,7 +4,7 @@ from Particle import Particle
 from Constants import BLACK
 
 pygame.init()
-WIDTH, HEIGHT = (800, 800)
+WIDTH, HEIGHT = (1244, 700)
 WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Collision Simulation")
 
@@ -81,11 +81,11 @@ def main():
     dt = 1 / fps
 
     box = Box()
-    started = True
+    started = False
 
     particles: list[Particle] = []
-    for i in range(100):
-        new_particle = Particle()
+    for i in range(200):
+        new_particle = Particle(box)
         new_particle.name = str(i)
         particles.append(new_particle)
 
@@ -110,9 +110,9 @@ def main():
                 started = not started
         
         for p in particles:
-            p.draw(WINDOW, box)
+            p.draw(WINDOW)
             if started:
-                p.update(dt, box)
+                p.update(dt)
                 ensure_within_bounds(p, box)
 
         pygame.display.update()

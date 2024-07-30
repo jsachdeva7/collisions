@@ -4,40 +4,20 @@ from Particle import Particle
 from Constants import BLACK
 import time
 from MemoryTracker import MemoryTracker
-from CollisionsUtil import handle_particle_collision, ensure_within_bounds
+from CollisionsUtil import handle_particle_collision, ensure_within_bounds, calculate_average_detections
 
-pygame.init()
-WIDTH, HEIGHT = (800, 800)
-WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Collision Simulation")
-
-num_collision_detections = list()
-
-def calculate_average_detections():
-    if not num_collision_detections:
-        return
-    
-    total = sum(num_collision_detections)
-    average = total / len(num_collision_detections)
-    print(f"Average collision detections per frame: {average:.2f}")
+num_collision_detections = []
+FONT = pygame.font.SysFont("calibri", 25)
 
 def place_particles_in_cells(box: Box, particles: list[Particle]):
     for particle in particles:
-        left_col = abs(int((particle.s.x - particle.r - box.left) / box.cell_width))
-        right_col = abs(int((particle.s.x + particle.r - box.left) / box.cell_width))
-        top_row = abs(int((particle.s.y - particle.r - box.top) / box.cell_height))
-        bottom_row = abs(int((particle.s.y + particle.r - box.top) / box.cell_height))
-
-        max(0, min(left_col, box.N - 1))
-        max(0, min(right_col, box.N - 1))
-        max(0, min(top_row, box.N - 1))
-        max(0, min(bottom_row, box.N - 1))
-
-        [left_col, right_col, top_row, bottom_row] = [(index if index <= box.N - 1 else box.N - 1) for index in [left_col, right_col, top_row, bottom_row]]
+        left_col = max(0, min(int((particle.s.x - particle.r - box.left) / box.cell_width), box.N - 1))
+        right_col = max(0, min(int((particle.s.x + particle.r - box.left) / box.cell_width), box.N - 1))
+        top_row = max(0, min(int((particle.s.y - particle.r - box.top) / box.cell_height), box.N - 1))
+        bottom_row = max(0, min(int((particle.s.y + particle.r - box.top) / box.cell_height), box.N - 1))
 
         for col in range(left_col, right_col + 1):
             for row in range(top_row, bottom_row + 1):
-                # print(str(col) + str(row))
                 box.cells[col][row].append(particle)
 
 def visualize_cells(cells):
@@ -49,7 +29,16 @@ def visualize_cells(cells):
         lines.append(line)
     return "\n".join(lines)
 
-def main():
+quit = False
+
+def main(num_particles, N):
+    pygame.display.quit()
+    pygame.display.init()
+    WIDTH, HEIGHT = (800, 800)
+    WINDOW = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Collision Simulation")
+    pygame.display.iconify()
+
     run = True
     clock = pygame.time.Clock()
     fps = 60
@@ -60,25 +49,24 @@ def main():
     box = Box()
     started = True
 
-    num_particles = 50
     particles: list[Particle] = []
     for i in range(num_particles):
-        new_particle = Particle()
+        new_particle = Particle(box)
         new_particle.name = str(i)
         particles.append(new_particle)
 
     start_time = time.time()
 
     while run:
-        clock.tick(30)
+        clock.tick(fps)
         WINDOW.fill(BLACK)
 
+        desc = FONT.render("N = " + str(N) + ", " + str(num_particles) + " particles", 1, (255, 255, 255))
+        WINDOW.blit(desc, (WIDTH / 2 - desc.get_width() / 2, box.top - 30))
+
         box.draw(WINDOW)
-        box.uniform_grid_partition(WINDOW, 4)
+        box.uniform_grid_partition(WINDOW, N)
         place_particles_in_cells(box, particles)
-        # if started:
-        #     print("--------------")
-        #     print(visualize_cells(box.cells))
 
         num_collisions_detected_this_frame = 0
         for i in range(len(box.cells)):
@@ -90,32 +78,48 @@ def main():
                         memory_tracker.update_memory_usage_array()
                         num_collisions_detected_this_frame += 1
         num_collision_detections.append(num_collisions_detected_this_frame)
+        collision_checks_text = FONT.render(str(num_collisions_detected_this_frame) + " collisions checked this frame.", 1, (255, 255, 255))
+        WINDOW.blit(collision_checks_text, (10, 10))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+                return False
             if event.type == pygame.KEYDOWN and event.key == pygame.K_RIGHT:
                 started = not started
         
         for p in particles:
-            p.draw(WINDOW, box)
+            p.draw(WINDOW)
             if started:
-                p.update(dt, box)
+                p.update(dt)
                 ensure_within_bounds(p, box)
 
         box.clear_uniform_grid_cells()
-        current_time = time.time()
-        elapsed_time = current_time - start_time
+        elapsed_time = time.time() - start_time
         if elapsed_time >= 60:
             run = False
 
         pygame.display.update()
-    pygame.quit()
-    print("N: " + str(box.N) + ", " + str(num_particles) + " particles")
-    calculate_average_detections()
-    memory_tracker.calculate_average_memory_usage()
+    
+    average_detections_str = calculate_average_detections(num_collision_detections)
+    average_memory_usage_str = memory_tracker.calculate_average_memory_usage()
+    result = f"{num_particles} particles: {average_detections_str}, {average_memory_usage_str}"
+    return result
 
-main()
+def run_tests(num_particles_array, num_grid_cuts):  
+    for N in num_grid_cuts:
+        results = []
+        for num_particles in num_particles_array:
+            result = main(num_particles, N)
+            if result == False:
+                return
+            results.append(result)
+            num_collision_detections.clear()
+        print("----- " + str(N) + " cuts -----")
+        for result in results:
+            print(result)
 
-
-
+num_particles_array = [2, 5, 20, 100, 200, 300, 500]
+num_grid_cuts = [2, 4, 8, 16]
+results = run_tests(num_particles_array, num_grid_cuts)
+pygame.quit()

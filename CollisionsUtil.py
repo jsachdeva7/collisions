@@ -21,11 +21,12 @@ def handle_particle_collision(p1: Particle, p2: Particle):
         v2n_i = un.dot(v2)
         v2t_i = ut.dot(v2)
         
-        v1n_f = (v1n_i * (m1 - m2) + 2 * m2 * v2n_i) / (m1 + m2)
         v1t_f = v1t_i
-        v2n_f = (v2n_i * (m2 - m1) + 2 * m1 * v1n_i) / (m1 + m2)
         v2t_f = v2t_i
 
+        v1n_f = (v1n_i * (m1 - m2) + 2 * m2 * v2n_i) / (m1 + m2)
+        v2n_f = (v2n_i * (m2 - m1) + 2 * m1 * v1n_i) / (m1 + m2)
+        
         v1n_f = v1n_f * un
         v1t_f = v1t_f * ut
         v2n_f = v2n_f * un
@@ -35,14 +36,15 @@ def handle_particle_collision(p1: Particle, p2: Particle):
         p2.v = v2n_f + v2t_f
 
         overlap = p1.r + p2.r - distance
+
         p1.s -= un * (overlap / 2)
         p2.s += un * (overlap / 2)
 
-        while (p1.s - p2.s).magnitude() < p1.r + p2.r:
-            p1.s -= un * 0.01
-            p2.s += un * 0.01
-        p1.s -= un * 0.01
-        p2.s += un * 0.01
+        # while (p1.s - p2.s).magnitude() < p1.r + p2.r:
+        #     p1.s -= un * 0.01
+        #     p2.s += un * 0.01
+        # p1.s -= un * 0.01
+        # p2.s += un * 0.01
 
 def ensure_within_bounds(particle: Particle, box: Box):
     if particle.s.x - particle.r < box.left:
@@ -61,4 +63,5 @@ def calculate_average_detections(num_collision_detections: list[int]):
     
     total = sum(num_collision_detections)
     average = total / len(num_collision_detections)
-    print(f"Average collision detections per frame: {average:.2f}")
+    return_string = f"{average:.2f} CFPS"
+    return return_string

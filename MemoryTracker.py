@@ -16,4 +16,5 @@ class MemoryTracker:
             return
         total = sum(self.memory_usage_array)
         average = total / len(self.memory_usage_array)
-        print(f"Average memory used: {average:.2f} MB")
+        result_string = f"{average:.2f} MB"
+        return result_string
